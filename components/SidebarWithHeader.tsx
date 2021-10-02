@@ -22,13 +22,13 @@ import {
   MenuItem,
   MenuList,
 } from "@chakra-ui/react";
+import { Switch } from "@chakra-ui/react";
+
 import {
   FiHome,
-  FiTrendingUp,
   FiScissors,
   FiCloud,
   FiCompass,
-  FiStar,
   FiSettings,
   FiMenu,
   FiBell,
@@ -129,7 +129,7 @@ const NavItem = ({ icon, children, ...rest }: NavItemProps) => {
         role="group"
         cursor="pointer"
         _hover={{
-          bg: "cyan.400",
+          bg: "cyan.100",
           color: "white",
         }}
         {...rest}
