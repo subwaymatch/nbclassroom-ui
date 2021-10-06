@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import {
+  Button,
   IconButton,
   Avatar,
   Box,
@@ -8,6 +9,7 @@ import {
   HStack,
   VStack,
   Icon,
+  useColorMode,
   useColorModeValue,
   Link,
   Drawer,
@@ -28,8 +30,6 @@ import {
   FiHome,
   FiScissors,
   FiCloud,
-  FiCompass,
-  FiSettings,
   FiMenu,
   FiBell,
   FiChevronDown,
@@ -40,13 +40,12 @@ import { ReactText } from "react";
 interface LinkItemProps {
   name: string;
   icon: IconType;
+  href: string;
 }
-const LinkItems: Array<LinkItemProps> = [
-  { name: "Home", icon: FiHome },
-  { name: "Autograder", icon: FiCloud },
-  { name: "Explore", icon: FiCompass },
-  { name: "Strip", icon: FiScissors },
-  { name: "Settings", icon: FiSettings },
+const linkItems: Array<LinkItemProps> = [
+  { name: "Home", icon: FiHome, href: "/" },
+  { name: "Autograder", icon: FiCloud, href: "/autograder" },
+  { name: "Strip", icon: FiScissors, href: "/strip" },
 ];
 
 export default function SidebarWithHeader({
@@ -99,14 +98,25 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
       h="full"
       {...rest}
     >
-      <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
-        <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
-          nbclassroom
-        </Text>
+      <Flex alignItems="center" mx="8" justifyContent="space-between">
+        <VStack align="flex-start" mt={5} mb={3} spacing={0}>
+          <Text
+            fontSize="2xl"
+            m={0}
+            fontFamily="monospace"
+            fontWeight="semibold"
+          >
+            nbclassroom
+          </Text>
+          <Text fontSize="sm" color="gray.300" letterSpacing="0">
+            Version 0.1.0
+          </Text>
+        </VStack>
+
         <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
       </Flex>
-      {LinkItems.map((link) => (
-        <NavItem key={link.name} icon={link.icon}>
+      {linkItems.map((link) => (
+        <NavItem key={link.href} href={link.href} icon={link.icon}>
           {link.name}
         </NavItem>
       ))}
@@ -116,11 +126,12 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 
 interface NavItemProps extends FlexProps {
   icon: IconType;
+  href: string;
   children: ReactText;
 }
-const NavItem = ({ icon, children, ...rest }: NavItemProps) => {
+const NavItem = ({ icon, href, children, ...rest }: NavItemProps) => {
   return (
-    <Link href="#" style={{ textDecoration: "none" }}>
+    <Link href={href} style={{ textDecoration: "none" }}>
       <Flex
         align="center"
         p="4"
@@ -130,7 +141,7 @@ const NavItem = ({ icon, children, ...rest }: NavItemProps) => {
         cursor="pointer"
         _hover={{
           bg: "cyan.100",
-          color: "white",
+          color: "cyan.900",
         }}
         {...rest}
       >
@@ -139,7 +150,7 @@ const NavItem = ({ icon, children, ...rest }: NavItemProps) => {
             mr="4"
             fontSize="16"
             _groupHover={{
-              color: "white",
+              color: "cyan.900",
             }}
             as={icon}
           />
@@ -154,6 +165,8 @@ interface MobileProps extends FlexProps {
   onOpen: () => void;
 }
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
+  const { colorMode, toggleColorMode } = useColorMode();
+
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
@@ -184,6 +197,10 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
       </Text>
 
       <HStack spacing={{ base: "0", md: "6" }}>
+        <Button onClick={toggleColorMode}>
+          Toggle {colorMode === "light" ? "Dark" : "Light"}
+        </Button>
+
         <IconButton
           size="lg"
           variant="ghost"
