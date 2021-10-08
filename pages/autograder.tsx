@@ -1,6 +1,11 @@
 import SidebarWithHeader from "components/SidebarWithHeader";
+import { parseNotebook } from "lib/jupystrip/io";
+import { stripNotebook } from "lib/jupystrip/strip";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { saveAs } from "file-saver";
+
+const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
 export default function AutoGraderPage() {
   const onDrop = useCallback((acceptedFiles) => {
@@ -14,12 +19,21 @@ export default function AutoGraderPage() {
       reader.onerror = () => console.log("file reading has failed");
       reader.onload = () => {
         const binaryStr = reader.result;
-        console.log(`binaryStr result`);
-        console.log(binaryStr);
 
-        const parsed = JSON.parse(binaryStr as string);
-        console.log(parsed);
+        const notebook = parseNotebook(binaryStr as string);
+        const strippedNotebook = stripNotebook(
+          notebook,
+          graderCellKeywordPattern,
+          true
+        );
+        console.log(strippedNotebook);
+        const blob = new Blob([JSON.stringify(strippedNotebook)], {
+          type: "text/x-python",
+        });
+
+        saveAs(blob, "test.ipynb");
       };
+
       reader.readAsText(file);
     });
   }, []);
