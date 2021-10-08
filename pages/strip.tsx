@@ -4,7 +4,6 @@ import { stripNotebook } from "lib/jupystrip/strip";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
-import { NotebookModel } from "@jupyterlab/notebook";
 
 const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
@@ -15,28 +14,37 @@ export default function StripPage() {
 
       console.log(file);
 
+      const fileName = file.name;
+      const lastDotLocation = fileName.lastIndexOf(".");
+      const fileNameWithoutExtension =
+        lastDotLocation >= 0 ? fileName.substr(0, lastDotLocation) : fileName;
+      const fileExt =
+        lastDotLocation >= 0 ? fileName.substr(lastDotLocation) : "";
+      const newFileNameWithoutExtension = fileNameWithoutExtension
+        .replace(/\s/g, "")
+        .toLowerCase()
+        .endsWith("-solution")
+        ? fileNameWithoutExtension.replace(/\-solution$/i, "")
+        : fileNameWithoutExtension + "-stripped";
+      const newFileName = newFileNameWithoutExtension + fileExt;
+
       reader.onabort = () => console.log("file reading was aborted");
       reader.onerror = () => console.log("file reading has failed");
       reader.onload = () => {
-        const notebookString = reader.result as string;
+        const binaryStr = reader.result;
 
-        const model = new NotebookModel();
-        model.fromString(notebookString);
+        const notebook = parseNotebook(binaryStr as string);
+        const strippedNotebook = stripNotebook(
+          notebook,
+          graderCellKeywordPattern,
+          true
+        );
 
-        console.log(model);
+        const blob = new Blob([JSON.stringify(strippedNotebook)], {
+          type: "text/x-python",
+        });
 
-        // const notebook = parseNotebook(binaryStr as string);
-        // const strippedNotebook = stripNotebook(
-        //   notebook,
-        //   graderCellKeywordPattern,
-        //   true
-        // );
-
-        // const blob = new Blob([JSON.stringify(strippedNotebook)], {
-        //   type: "text/x-python",
-        // });
-
-        // saveAs(blob, 'test.ipynb');
+        saveAs(blob, newFileName);
       };
 
       reader.readAsText(file);

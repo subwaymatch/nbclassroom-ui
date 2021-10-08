@@ -47,9 +47,8 @@ export function stripNotebook(
         }
 
         if (clearOutputs) {
-          delete cell["execution_count"];
-          delete cell["outputs"];
-          delete cell["output_type"];
+          cell["execution_count"] = null;
+          cell["outputs"] = [];
         }
       }
 

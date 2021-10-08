@@ -8,8 +8,7 @@ export interface INotebook {
 export interface ICell {
   cell_type: string;
   metadata: any;
-  execution_count?: number;
+  execution_count?: number | null;
   outputs?: any;
-  output_type?: any;
   source: string | string[];
 }
