@@ -1,8 +1,8 @@
-import { ICell, INotebook } from "typings/jupyter";
+import { INotebookContent, ICell, isCode } from "lib/jupyterlab/nbformat";
 import { doesCellContainPattern } from "./utils";
 
 export function stripNotebook(
-  notebook: INotebook,
+  notebook: INotebookContent,
   pattern: string | RegExp,
   clearOutputs = true
 ) {
@@ -14,19 +14,8 @@ export function stripNotebook(
 
     const shouldRemove = doesCellContainPattern(cell, pattern);
 
-    if (shouldRemove) {
-      if (i !== cells.length - 1) {
-        const nextCell = cells[i + 1];
-
-        if (!doesCellContainPattern(nextCell, pattern)) {
-          nextCell.metadata = Object.assign({}, nextCell.metadata, {
-            deletable: false,
-            editable: false,
-          });
-        }
-      }
-    } else {
-      if (cell.cell_type == "code") {
+    if (!shouldRemove) {
+      if (isCode(cell)) {
         if (Array.isArray(cell.source)) {
           let startReplace = false;
           let newLines = [];
