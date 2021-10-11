@@ -54,7 +54,7 @@ export default function StripPage() {
 
   return (
     <SidebarWithHeader>
-      <h2>Strip Solution Notebook File</h2>
+      <h2>Autograder (Not working yet)</h2>
 
       <div
         {...getRootProps()}
