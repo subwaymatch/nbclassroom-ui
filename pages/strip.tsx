@@ -4,6 +4,7 @@ import { stripNotebook } from "lib/jupystrip/strip";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
+import { Box, Center, Heading, Text } from "@chakra-ui/layout";
 
 const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
@@ -54,24 +55,30 @@ export default function StripPage() {
 
   return (
     <SidebarWithHeader>
-      <h2>Strip Solution Notebook File</h2>
+      <Heading as="h1" fontWeight={600} mt={4}>
+        Strip Solution Notebook File
+      </Heading>
 
-      <div
+      <Box
+        p={16}
+        mt={8}
+        bg="gray.50"
+        borderWidth={8}
+        borderColor="gray.200"
         {...getRootProps()}
         style={{
-          padding: "20px 30px",
-          backgroundColor: "#f5f5f5",
-          border: "3px solid #eee",
           cursor: "pointer",
         }}
       >
         <input {...getInputProps()} />
-        {isDragActive ? (
-          <p>Drop the files here...</p>
-        ) : (
-          <p>Drag and drop some files here or click to select files</p>
-        )}
-      </div>
+        <Center>
+          <Text>
+            {isDragActive
+              ? "Drop the files here..."
+              : "Drag and drop some files here or click to select files"}
+          </Text>
+        </Center>
+      </Box>
     </SidebarWithHeader>
   );
 }

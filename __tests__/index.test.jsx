@@ -2,9 +2,6 @@
  * @jest-environment jsdom
  */
 
-import React from "react";
-import { render, screen } from "@testing-library/react";
-
 test("two plus two", () => {
   const value = 2 + 2;
   expect(value).toBeGreaterThan(3);

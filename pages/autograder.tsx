@@ -1,13 +1,19 @@
 import SidebarWithHeader from "components/SidebarWithHeader";
 import { parseNotebook } from "lib/jupystrip/io";
 import { stripNotebook } from "lib/jupystrip/strip";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
+import { Box, Center, Code, Heading, Text } from "@chakra-ui/layout";
+import { getBeforeScript } from "lib/jupystrip/autograder";
 
 const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
 export default function StripPage() {
+  useEffect(() => {
+    console.log(getBeforeScript());
+  }, []);
+
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
@@ -54,24 +60,36 @@ export default function StripPage() {
 
   return (
     <SidebarWithHeader>
-      <h2>Autograder (Not working yet)</h2>
+      <Heading as="h1" fontWeight={600} mt={4}>
+        Add Grader Cells
+      </Heading>
 
-      <div
+      <Text color="gray.500" fontSize="xl" mt={6}>
+        Dropping files in here will add{" "}
+        <Code colorScheme="blue">record_part()</Code> function to the beginning
+        of Jupyter notebook and code for generating a csv gradebook.
+      </Text>
+
+      <Box
+        p={16}
+        mt={8}
+        bg="gray.50"
+        borderWidth={8}
+        borderColor="gray.200"
         {...getRootProps()}
         style={{
-          padding: "20px 30px",
-          backgroundColor: "#f5f5f5",
-          border: "3px solid #eee",
           cursor: "pointer",
         }}
       >
         <input {...getInputProps()} />
-        {isDragActive ? (
-          <p>Drop the files here...</p>
-        ) : (
-          <p>Drag and drop some files here or click to select files</p>
-        )}
-      </div>
+        <Center>
+          <Text>
+            {isDragActive
+              ? "Drop the files here..."
+              : "Drag and drop some files here or click to select files"}
+          </Text>
+        </Center>
+      </Box>
     </SidebarWithHeader>
   );
 }
