@@ -1,5 +1,27 @@
-import { ICell } from "lib/jupyterlab/nbformat";
+import { ICell, ICodeCell, INotebookContent } from "lib/jupyterlab/nbformat";
 import stringSimilarity from "string-similarity";
+
+export function getNewCodeCell(codeStr = ""): ICodeCell {
+  const newCell: ICodeCell = {
+    cell_type: "code",
+    execution_count: null,
+    outputs: [],
+    source: codeStr,
+    metadata: {},
+  };
+
+  return newCell;
+}
+
+export function prependCell(notebook: INotebookContent, cell: ICell) {
+  notebook.cells = [cell, ...notebook.cells];
+  return notebook;
+}
+
+export function appendCell(notebook: INotebookContent, cell: ICell) {
+  notebook.cells = [...notebook.cells, cell];
+  return notebook;
+}
 
 export function doesCellContainPattern(cell: ICell, pattern: string | RegExp) {
   if (!(pattern instanceof RegExp)) {

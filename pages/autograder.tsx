@@ -5,20 +5,22 @@ import { useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import { Box, Center, Code, Heading, Text } from "@chakra-ui/layout";
-import { getBeforeScript } from "lib/jupystrip/autograder";
+import {
+  getBeforeScriptCodeCell,
+  getAfterScriptCodeCell,
+} from "lib/jupystrip/autograder";
+import { appendCell, prependCell } from "lib/jupystrip/utils";
 
 const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
 export default function StripPage() {
   useEffect(() => {
-    console.log(getBeforeScript());
+    console.log(getBeforeScriptCodeCell());
   }, []);
 
   const onDrop = useCallback((acceptedFiles: Array<File>) => {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
-
-      console.log(file);
 
       const fileName = file.name;
       const lastDotLocation = fileName.lastIndexOf(".");
@@ -26,12 +28,8 @@ export default function StripPage() {
         lastDotLocation >= 0 ? fileName.substr(0, lastDotLocation) : fileName;
       const fileExt =
         lastDotLocation >= 0 ? fileName.substr(lastDotLocation) : "";
-      const newFileNameWithoutExtension = fileNameWithoutExtension
-        .replace(/\s/g, "")
-        .toLowerCase()
-        .endsWith("-solution")
-        ? fileNameWithoutExtension.replace(/\-solution$/i, "")
-        : fileNameWithoutExtension + "-stripped";
+      const newFileNameWithoutExtension =
+        fileNameWithoutExtension + "-autograder";
       const newFileName = newFileNameWithoutExtension + fileExt;
 
       reader.onabort = () => console.log("file reading was aborted");
@@ -40,13 +38,11 @@ export default function StripPage() {
         const binaryStr = reader.result;
 
         const notebook = parseNotebook(binaryStr as string);
-        const strippedNotebook = stripNotebook(
-          notebook,
-          graderCellKeywordPattern,
-          true
-        );
 
-        const blob = new Blob([JSON.stringify(strippedNotebook)], {
+        prependCell(notebook, getBeforeScriptCodeCell());
+        appendCell(notebook, getAfterScriptCodeCell());
+
+        const blob = new Blob([JSON.stringify(notebook)], {
           type: "text/x-python",
         });
 
