@@ -21,11 +21,19 @@ export function stripNotebook(
           let newLines = [];
 
           for (const line of cell.source) {
-            if (line.trim() === "# YOUR CODE BEGINS") {
-              newLines.push(line);
+            const trimmedLine = line.trim();
+
+            if (
+              trimmedLine === "# YOUR CODE BEGINS" ||
+              trimmedLine === "### BEGIN SOLUTION"
+            ) {
+              newLines.push("# YOUR CODE BEGINS");
               startReplace = true;
-            } else if (line.trim() === "# YOUR CODE ENDS") {
-              newLines.push(line);
+            } else if (
+              trimmedLine === "# YOUR CODE ENDS" ||
+              trimmedLine === "### END SOLUTION"
+            ) {
+              newLines.push("# YOUR CODE ENDS");
               startReplace = false;
             } else {
               newLines.push(startReplace ? "\n" : line);
