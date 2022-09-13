@@ -12,7 +12,7 @@ def record_part(part_name, did_pass, available_points, message=""):
     
     # If already graded, remove previous graded order entry for this part
     if part_name in autograded_result["order"]:
-        print("[Warning] Autograder: Part already graded or a duplicate key exists")
+        print(f"[Warning] Autograder: {part_name} already graded or a duplicate key exists")
         autograded_result["order"].remove(part_name)
     
     # Record graded order
