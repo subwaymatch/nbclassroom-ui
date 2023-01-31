@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import { Box, Center, Heading, Text } from "@chakra-ui/layout";
+import { obfuscateNotebook } from "lib/jupystrip/obfuscate";
 
 const graderCellKeywordPattern = "# GRADER[S_ ]{0,2}ONLY";
 
@@ -35,13 +36,10 @@ export default function StripPage() {
         const binaryStr = reader.result;
 
         const notebook = parseNotebook(binaryStr as string);
-        const strippedNotebook = stripNotebook(
-          notebook,
-          graderCellKeywordPattern,
-          true
-        );
+        stripNotebook(notebook, graderCellKeywordPattern, true);
+        obfuscateNotebook(notebook);
 
-        const blob = new Blob([JSON.stringify(strippedNotebook)], {
+        const blob = new Blob([JSON.stringify(notebook)], {
           type: "text/x-python",
         });
 

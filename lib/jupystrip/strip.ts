@@ -27,18 +27,21 @@ export function stripNotebook(
               trimmedLine === "# YOUR CODE BEGINS" ||
               trimmedLine === "### BEGIN SOLUTION"
             ) {
-              newLines.push("# YOUR CODE BEGINS");
+              newLines.push("# YOUR CODE BEGINS\n\n");
               startReplace = true;
             } else if (
               trimmedLine === "# YOUR CODE ENDS" ||
               trimmedLine === "### END SOLUTION"
             ) {
-              newLines.push("# YOUR CODE ENDS");
+              newLines.push("# YOUR CODE ENDS\n");
               startReplace = false;
-            } else {
-              newLines.push(startReplace ? "\n" : line);
+            } else if (!startReplace) {
+              newLines.push(line);
             }
           }
+
+          newLines[newLines.length - 1] =
+            newLines[newLines.length - 1].trimEnd();
 
           cell.source = newLines;
         }
@@ -54,6 +57,4 @@ export function stripNotebook(
   }
 
   notebook["cells"] = filteredCells;
-
-  return notebook;
 }
