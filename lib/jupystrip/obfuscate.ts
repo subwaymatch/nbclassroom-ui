@@ -46,10 +46,6 @@ export function obfuscateNotebook(notebook: INotebookContent) {
       // hidden tests
       const hiddenTestMatches = code.match(hiddenTestPattern);
 
-      console.log("Hidden test matches");
-      console.log(hiddenTestMatches);
-      console.log("====");
-
       if (hiddenTestMatches) {
         hiddenTestMatches.forEach((match) => {
           match = match.replace(/^### BEGIN HIDDEN TESTS/, "");
@@ -57,13 +53,14 @@ export function obfuscateNotebook(notebook: INotebookContent) {
           match = match.trim();
           match = match.replace(/^/gm, "    ");
 
-          code += hiddenTestTemplate.replace("# TEST_CASE_REPLACE_HERE", match);
+          // use .split().join() to avoid the match string to be used as a regular expression
+          code += hiddenTestTemplate
+            .split("# TEST_CASE_REPLACE_HERE")
+            .join(match);
         });
 
         code = code.replace(hiddenTestPattern, "");
       }
-
-      console.log(code);
 
       let encodedCode = window.btoa(code);
       obfuscatedCode += "import base64 as _b64\n";
@@ -79,8 +76,6 @@ export function obfuscateNotebook(notebook: INotebookContent) {
 
       obfuscatedCode += `eval(compile(_64, '<string>', 'exec'))`;
       obfuscatedCode.split(/\r?\n/).map((s) => s + "\n");
-
-      //   console.log(obfuscatedCode);
 
       cell.source = obfuscatedCode.split(/\r?\n/).map((s) => s + "\n");
       cell.source[cell.source.length - 1] =

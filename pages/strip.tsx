@@ -22,13 +22,6 @@ export default function StripPage() {
         lastDotLocation >= 0 ? fileName.substr(0, lastDotLocation) : fileName;
       const fileExt =
         lastDotLocation >= 0 ? fileName.substr(lastDotLocation) : "";
-      const newFileNameWithoutExtension = fileNameWithoutExtension
-        .replace(/\s/g, "")
-        .toLowerCase()
-        .endsWith("-solution")
-        ? fileNameWithoutExtension.replace(/\-solution$/i, "")
-        : fileNameWithoutExtension + "-stripped";
-      const newFileName = newFileNameWithoutExtension + fileExt;
 
       reader.onabort = () => console.log("file reading was aborted");
       reader.onerror = () => console.log("file reading has failed");
@@ -36,14 +29,35 @@ export default function StripPage() {
         const binaryStr = reader.result;
 
         const notebook = parseNotebook(binaryStr as string);
-        stripNotebook(notebook, graderCellKeywordPattern, true);
+
+        // obfuscation (before stripping)
         obfuscateNotebook(notebook);
 
-        const blob = new Blob([JSON.stringify(notebook)], {
+        const blobBeforeStrip = new Blob([JSON.stringify(notebook)], {
           type: "text/x-python",
         });
+        let saveFileNameWithoutExtension = fileNameWithoutExtension
+          .replace(/\s/g, "")
+          .toLowerCase()
+          .endsWith("-solution")
+          ? fileNameWithoutExtension.replace(/\-solution$/i, "-test")
+          : fileNameWithoutExtension + "-test";
+        let saveFileName = saveFileNameWithoutExtension + fileExt;
+        saveAs(blobBeforeStrip, saveFileName);
 
-        saveAs(blob, newFileName);
+        // after stripping solution code
+        stripNotebook(notebook, graderCellKeywordPattern, true);
+        const blobAfterStrip = new Blob([JSON.stringify(notebook)], {
+          type: "text/x-python",
+        });
+        saveFileNameWithoutExtension = fileNameWithoutExtension
+          .replace(/\s/g, "")
+          .toLowerCase()
+          .endsWith("-solution")
+          ? fileNameWithoutExtension.replace(/\-solution$/i, "")
+          : fileNameWithoutExtension + "-stripped";
+        saveFileName = saveFileNameWithoutExtension + fileExt;
+        saveAs(blobAfterStrip, saveFileName);
       };
 
       reader.readAsText(file);
