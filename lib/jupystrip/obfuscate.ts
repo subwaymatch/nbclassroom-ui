@@ -22,6 +22,14 @@ export function obfuscateNotebook(notebook: INotebookContent) {
 
       let obfuscatedCode = "# DO NOT CHANGE THE CODE IN THIS CELL\n";
 
+      // hidden tests
+      const hiddenTestMatches = code.match(hiddenTestPattern);
+
+      if (hiddenTestMatches) {
+        obfuscatedCode +=
+          "# INCLUDES HIDDEN TESTS THAT ONLY RUN DURING GRADING\n";
+      }
+
       // extract test case name
       const testCaseNameMatch = testCaseNamePattern.exec(code);
       if (testCaseNameMatch) {
@@ -42,9 +50,6 @@ export function obfuscateNotebook(notebook: INotebookContent) {
       obfuscatedCode += "_obfuscate = True\n\n";
       code = code.replace(obfuscatePattern, "");
       code = code.trim();
-
-      // hidden tests
-      const hiddenTestMatches = code.match(hiddenTestPattern);
 
       if (hiddenTestMatches) {
         hiddenTestMatches.forEach((match) => {
