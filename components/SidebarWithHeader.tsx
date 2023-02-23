@@ -44,7 +44,6 @@ interface LinkItemProps {
 }
 const linkItems: Array<LinkItemProps> = [
   { name: "Home", icon: FiHome, href: "/" },
-  { name: "Autograder", icon: FiCloud, href: "/autograder" },
   { name: "Strip", icon: FiScissors, href: "/strip" },
 ];
 

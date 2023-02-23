@@ -1,5 +1,9 @@
 import { INotebookContent, ICell, isCode } from "lib/jupyterlab/nbformat";
-import { doesCellContainPattern } from "./utils";
+import {
+  doesCellContainPattern,
+  getCellSourceAsString,
+  obfuscatePythonCode,
+} from "./utils";
 
 const obfuscatePattern = /^\s*_obfuscate\s*=\s*True/gm;
 const pointsPattern = /^_points\s*=\s*([\d\.]*).*$/m;
@@ -9,6 +13,54 @@ const hiddenTestPattern = /^### BEGIN HIDDEN TESTS(.*?)### END HIDDEN TESTS/gms;
 const hiddenTestTemplate = `\nif 'is_lambdagrader_env' in globals():
 # TEST_CASE_REPLACE_HERE\n\n`;
 
+export function convertHiddenTestCases(notebook: INotebookContent) {
+  const cells: ICell[] = notebook["cells"];
+
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    let code = "";
+
+    if (isCode(cell) && doesCellContainPattern(cell, hiddenTestPattern)) {
+      let source = getCellSourceAsString(cell);
+
+      // hidden tests
+      const hiddenTestMatches = source.match(hiddenTestPattern);
+
+      if (hiddenTestMatches) {
+        hiddenTestMatches.forEach((match) => {
+          code = "";
+          // create a copy of the match
+          let matchText = `${match}`;
+
+          // matchText = matchText.replace(/^### BEGIN HIDDEN TESTS/, "");
+          // matchText = matchText.replace(/### END HIDDEN TESTS$/, "");
+          matchText = matchText.trim();
+          matchText = matchText.replace(/^/gm, "    ");
+
+          // use .split().join() to avoid the match string to be used as a regular expression
+          code += hiddenTestTemplate
+            .split("# TEST_CASE_REPLACE_HERE")
+            .join(matchText);
+
+          // if the code cell is not configured to obfuscate
+          // obfuscate the hidden test case
+          if (!doesCellContainPattern(cell, obfuscatePattern)) {
+            code = obfuscatePythonCode(code);
+          }
+
+          code = "# HIDDEN TESTS THAT ONLY RUN DURING GRADING\n" + code;
+
+          source = source.replace(match, code);
+        });
+
+        cell.source = source;
+      }
+    }
+  }
+
+  return notebook;
+}
+
 export function obfuscateNotebook(notebook: INotebookContent) {
   const cells: ICell[] = notebook["cells"];
 
@@ -16,19 +68,9 @@ export function obfuscateNotebook(notebook: INotebookContent) {
     const cell = cells[i];
 
     if (isCode(cell) && doesCellContainPattern(cell, obfuscatePattern)) {
-      let code = Array.isArray(cell.source)
-        ? cell.source.join("")
-        : cell.source;
+      let code = getCellSourceAsString(cell);
 
       let obfuscatedCode = "# DO NOT CHANGE THE CODE IN THIS CELL\n";
-
-      // hidden tests
-      const hiddenTestMatches = code.match(hiddenTestPattern);
-
-      if (hiddenTestMatches) {
-        obfuscatedCode +=
-          "# INCLUDES HIDDEN TESTS THAT ONLY RUN DURING GRADING\n";
-      }
 
       // extract test case name
       const testCaseNameMatch = testCaseNamePattern.exec(code);
@@ -49,44 +91,11 @@ export function obfuscateNotebook(notebook: INotebookContent) {
       // extract obfuscation flag
       obfuscatedCode += "_obfuscate = True\n\n";
       code = code.replace(obfuscatePattern, "");
+
+      // obfuscate
       code = code.trim();
-
-      if (hiddenTestMatches) {
-        hiddenTestMatches.forEach((match) => {
-          match = match.replace(/^### BEGIN HIDDEN TESTS/, "");
-          match = match.replace(/### END HIDDEN TESTS$/, "");
-          match = match.trim();
-          match = match.replace(/^/gm, "    ");
-
-          // use .split().join() to avoid the match string to be used as a regular expression
-          code += hiddenTestTemplate
-            .split("# TEST_CASE_REPLACE_HERE")
-            .join(match);
-        });
-
-        code = code.replace(hiddenTestPattern, "");
-      }
-
-      let encodedCode = window.btoa(code);
-      obfuscatedCode += "import base64 as _b64\n";
-
-      let b64part = `_64 = _b64.b64decode('${encodedCode}')\n`;
-      b64part = b64part.replace(/(.{100})/g, "$1\\\n");
-
-      b64part = /\\[\r?\n]+$/.test(b64part)
-        ? b64part.slice(0, -3) + "\n"
-        : b64part;
-
-      obfuscatedCode += b64part;
-
-      obfuscatedCode += `eval(compile(_64, '<string>', 'exec'))`;
-      obfuscatedCode.split(/\r?\n/).map((s) => s + "\n");
-
-      cell.source = obfuscatedCode.split(/\r?\n/).map((s) => s + "\n");
-      cell.source[cell.source.length - 1] =
-        cell.source[cell.source.length - 1].trimEnd();
-
-      cells[i] = cell;
+      obfuscatedCode += obfuscatePythonCode(code);
+      cell.source = obfuscatedCode;
     }
   }
 

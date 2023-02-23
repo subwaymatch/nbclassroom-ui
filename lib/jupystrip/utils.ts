@@ -1,77 +1,37 @@
-import { ICell, ICodeCell, INotebookContent } from "lib/jupyterlab/nbformat";
-import stringSimilarity from "string-similarity";
-
-export function getNewCodeCell(codeStr = ""): ICodeCell {
-  const newCell: ICodeCell = {
-    cell_type: "code",
-    execution_count: null,
-    outputs: [],
-    source: codeStr,
-    metadata: {},
-  };
-
-  return newCell;
-}
-
-export function prependCell(notebook: INotebookContent, cell: ICell) {
-  notebook.cells = [cell, ...notebook.cells];
-  return notebook;
-}
-
-export function appendCell(notebook: INotebookContent, cell: ICell) {
-  notebook.cells = [...notebook.cells, cell];
-  return notebook;
-}
+import { ICell } from "lib/jupyterlab/nbformat";
 
 export function doesCellContainPattern(cell: ICell, pattern: string | RegExp) {
   if (!(pattern instanceof RegExp)) {
     pattern = new RegExp(pattern);
   }
 
-  // Notebook cells can either be a string or an array of strings
-  // If string, convert it to an array of strings
-  const lines = Array.isArray(cell.source) ? cell.source : [cell.source];
+  const code = getCellSourceAsString(cell);
 
-  for (const line of lines) {
-    if (line.match(pattern)) {
-      return true;
-    }
-  }
-
-  return false;
+  return !!code.match(pattern);
 }
 
-export function findCellIndex(
-  findCell: ICell,
-  cells: ICell[],
-  matchType = true
-): number {
-  const findCellStr = cellToString(findCell, matchType);
-  const cellStrs = cells.map((o) => cellToString(o, matchType));
-
-  const similarityMatches = stringSimilarity.findBestMatch(
-    findCellStr,
-    cellStrs
-  );
-
-  if (similarityMatches.bestMatch.rating >= 0.9) {
-    return similarityMatches.bestMatchIndex;
-  }
-
-  // No match
-  return -1;
-}
-
-export function cellToString(cell: ICell, includeType = false) {
+export function getCellSourceAsString(cell: ICell) {
   // Notebook cells can either be a string or an array of strings
   // If array, convert it to a string
-  let cellStr = Array.isArray(cell.source)
-    ? cell.source.join(",")
-    : cell.source;
+  return Array.isArray(cell.source) ? cell.source.join("") : cell.source;
+}
 
-  if (includeType) {
-    cellStr = `[${cell.cell_type}] ${cellStr}`;
-  }
+export function obfuscatePythonCode(code: string): string {
+  let encodedCode = window.btoa(unescape(encodeURIComponent(code)));
+  let obfuscatedCode = "";
+  obfuscatedCode += "import base64 as _b64\n";
 
-  return cellStr;
+  let b64part = `_64 = _b64.b64decode('${encodedCode}')\n`;
+  b64part = b64part.replace(/(.{100})/g, "$1\\\n");
+
+  b64part = /\\[\r?\n]+$/.test(b64part) ? b64part.slice(0, -3) + "\n" : b64part;
+  obfuscatedCode += b64part;
+  obfuscatedCode += `eval(compile(_64, '<string>', 'exec'))`;
+  obfuscatedCode = obfuscatedCode
+    .split(/\r?\n/)
+    .map((s) => s + "\n")
+    .join("")
+    .trimEnd();
+
+  return obfuscatedCode;
 }
