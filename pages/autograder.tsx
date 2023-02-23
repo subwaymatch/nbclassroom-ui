@@ -1,6 +1,6 @@
 import SidebarWithHeader from "components/SidebarWithHeader";
 import { parseNotebook } from "lib/jupystrip/io";
-import { stripNotebook } from "lib/jupystrip/strip";
+import { stripSolutionCodesFromNotebook } from "lib/jupystrip/strip";
 import { useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";

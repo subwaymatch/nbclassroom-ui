@@ -1,6 +1,9 @@
 import SidebarWithHeader from "components/SidebarWithHeader";
 import { parseNotebook } from "lib/jupystrip/io";
-import { stripNotebook } from "lib/jupystrip/strip";
+import {
+  stripSolutionCodesFromNotebook,
+  stripCellsByPatternFromNotebook,
+} from "lib/jupystrip/strip";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
@@ -46,7 +49,9 @@ export default function StripPage() {
         saveAs(blobBeforeStrip, saveFileName);
 
         // after stripping solution code
-        stripNotebook(notebook, graderCellKeywordPattern, true);
+        stripCellsByPatternFromNotebook(notebook, graderCellKeywordPattern);
+        stripSolutionCodesFromNotebook(notebook, true);
+
         const blobAfterStrip = new Blob([JSON.stringify(notebook)], {
           type: "text/x-python",
         });
