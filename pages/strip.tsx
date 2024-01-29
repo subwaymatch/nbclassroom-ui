@@ -23,8 +23,6 @@ export default function StripPage() {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
 
-      console.log(file);
-
       const fileName = file.name;
       const lastDotLocation = fileName.lastIndexOf(".");
       const fileNameWithoutExtension =

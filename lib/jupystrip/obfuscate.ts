@@ -50,7 +50,9 @@ export function convertHiddenTestCases(notebook: INotebookContent) {
 
           code = "# HIDDEN TESTS THAT ONLY RUN DURING GRADING\n" + code;
 
-          source = source.replace(match, code);
+          source = source.replace(match, function () {
+            return code;
+          });
         });
 
         cell.source = source;
