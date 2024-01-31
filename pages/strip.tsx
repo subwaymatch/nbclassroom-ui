@@ -9,6 +9,7 @@ import { useDropzone } from "react-dropzone";
 import { saveAs } from "file-saver";
 import { Box, Center, Heading, Text } from "@chakra-ui/layout";
 import {
+  addDoNotChangeTestCaseCellWarnings,
   convertHiddenTestCases,
   obfuscateNotebook,
 } from "lib/jupystrip/obfuscate";
@@ -41,6 +42,7 @@ export default function StripPage() {
 
         convertHiddenTestCases(notebook);
         obfuscateNotebook(notebook);
+        addDoNotChangeTestCaseCellWarnings(notebook);
 
         const blobBeforeStrip = new Blob([JSON.stringify(notebook)], {
           type: "text/x-python",
@@ -80,7 +82,7 @@ export default function StripPage() {
 
   return (
     <SidebarWithHeader>
-      <Heading as="h1" fontWeight={600} mt={4}>
+      <Heading as="h1" fontWeight="semibold" mt={4}>
         Strip Solution Notebook File
       </Heading>
 
